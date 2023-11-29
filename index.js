@@ -1,9 +1,11 @@
 import express from "express";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 
-import UserModel from "./models/User.js";
+import checkAuth from "./utils/checkAuth.js";
+import { getMe, login, register } from "./controllers/UserController.js";
+
+import * as UserController from './controllers/UserController.js'
+import * as ProductController from './controllers/ProductController.js'
 
 mongoose
   .connect(
@@ -20,39 +22,18 @@ const app = express();
 
 app.use(express.json()); //Позволяет читать json в запросах
 
-app.post("/auth/register", async (req, res) => {
-  try {
-    console.log("Пользователь который зарегестрировался: ", req.body.fullName);
 
-    const password = req.body.password;
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+//Запросы
+app.post("/auth/login", UserController.login);
+app.post("/auth/register", UserController.register);
+app.get("/auth/me", checkAuth, UserController.getMe)
 
-    const doc = new UserModel({
-      fullName: req.body.fullName,
-      email: req.body.email,
-      passwordHash,
-    });
-
-    const user = await doc.save();
-
-    const token = jwt.sign(
-      {
-        _id: user._id,
-      },
-      "secret123",
-      {
-        expiresIn: '60d'
-      }
-    );
-
-    res.json(...user, token);
-  } catch (err) {
-    res.status(500).json({
-      message: "Не удалось зарегестрироваться",
-    });
-  }
-});
+//Product
+app.get('/products', ProductController.getAll);
+app.get('/products/:id', ProductController.getOne);
+app.post('/products', checkAuth, ProductController.create);
+app.delete('/products/:id', checkAuth, ProductController.remove);
+app.patch('/products/:id', checkAuth, ProductController.update);
 
 app.listen(4444, (err) => {
   if (err) {
