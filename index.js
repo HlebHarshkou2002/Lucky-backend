@@ -1,11 +1,12 @@
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 
 import checkAuth from "./utils/checkAuth.js";
 import { getMe, login, register } from "./controllers/UserController.js";
 
-import * as UserController from './controllers/UserController.js'
-import * as ProductController from './controllers/ProductController.js'
+import {UserController, ProductController, SaleController} from './controllers/index.js'
+
 
 mongoose
   .connect(
@@ -20,6 +21,7 @@ mongoose
 
 const app = express();
 
+app.use(cors())
 app.use(express.json()); //Позволяет читать json в запросах
 
 
@@ -34,6 +36,12 @@ app.get('/products/:id', ProductController.getOne);
 app.post('/products', checkAuth, ProductController.create);
 app.delete('/products/:id', checkAuth, ProductController.remove);
 app.patch('/products/:id', checkAuth, ProductController.update);
+
+//Sale
+app.post('/sales', checkAuth, SaleController.create);
+app.get('/sales', checkAuth, SaleController.getAll);
+
+
 
 app.listen(4444, (err) => {
   if (err) {
