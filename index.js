@@ -34,6 +34,7 @@ app.get("/auth/me", checkAuth, UserController.getMe)
 app.get('/products', ProductController.getAll);
 app.get('/products/:id', ProductController.getOne);
 app.get('/products/most/popular', ProductController.getMostPopular);
+app.get('/products/most/new', ProductController.getNewProducts);
 app.post('/products', checkAuth, ProductController.create);
 app.delete('/products/:id', checkAuth, ProductController.remove);
 app.patch('/products/:id', checkAuth, ProductController.update);

@@ -169,3 +169,20 @@ export const getMostPopular = async (req, res) => {
     });
   }
 };
+
+export const getNewProducts = async (req, res) => {
+  try {
+    const products = await ProductModel.find().populate("user").exec();
+
+    products.sort(function(a,b) {
+      return (b.createdAt - a.createdAt);
+    })
+
+    res.json(products.slice(0, 8));
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить товары",
+    });
+  }
+};
