@@ -103,3 +103,23 @@ export const getMe = async (req, res) => {
     });
   }
 };
+
+export const getAll = async (req, res) => {
+  try {
+    const users = await UserModel.find(); 
+
+    if (!users) {
+      return res.status(404).json({
+        message: "Ну удалось получить пользователей",
+      });
+    }
+
+
+    res.json(users);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Нет доступа",
+    });
+  }
+}

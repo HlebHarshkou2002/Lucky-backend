@@ -47,6 +47,7 @@ app.get('/sales', SaleController.getAll);
 //Admin
 app.post('/admin/auth/login', AdminController.login)
 app.get("/admin/auth/me", checkAuth, AdminController.getMe)
+app.get("/users", UserController.getAll)
 
 
 app.listen(4444, (err) => {
