@@ -123,3 +123,27 @@ export const getAll = async (req, res) => {
     });
   }
 }
+
+export const remove = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const doc = await UserModel.findOneAndDelete({
+      _id: userId,
+    });
+    if (!doc) {
+      res.status(404).json({
+        message: "Пользователь не найден",
+      });
+    }
+
+    res.json({
+      success: true,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось удалить пользователя",
+    });
+  }
+}
