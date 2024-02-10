@@ -5,7 +5,7 @@ import cors from "cors";
 import checkAuth from "./utils/checkAuth.js";
 import { getMe, login, register } from "./controllers/UserController.js";
 
-import {UserController, ProductController, SaleController, AdminController} from './controllers/index.js'
+import {UserController, ProductController, SaleController, AdminController, ProviderController, SupplyController} from './controllers/index.js'
 
 
 mongoose
@@ -47,9 +47,19 @@ app.get('/sales', SaleController.getAll);
 //Admin
 app.post('/admin/auth/login', AdminController.login)
 app.get("/admin/auth/me", checkAuth, AdminController.getMe)
+
+//Управление пользователями
 app.get("/users", UserController.getAll)
 app.delete("/users/:id", UserController.remove)
 
+//Поставщики
+app.get('/providers', ProviderController.getAll)
+app.post('/providers', ProviderController.create)
+
+//Поставки
+app.get('/supplies', SupplyController.getAll)
+app.get('/supplies/:id', SupplyController.getOne)
+app.post('/supplies', SupplyController.create)
 
 app.listen(4444, (err) => {
   if (err) {

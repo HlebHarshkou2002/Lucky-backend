@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const ProductSchema = new mongoose.Schema({
+const SupplyProductSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true
@@ -43,4 +43,4 @@ const ProductSchema = new mongoose.Schema({
     timestamps: true,
 })
 
-export default mongoose.model('Product', ProductSchema);
+export default mongoose.model('SupplyProduct', SupplyProductSchema);
