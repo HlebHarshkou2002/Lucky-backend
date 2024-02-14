@@ -15,11 +15,11 @@ const SupplySchema = new mongoose.Schema({
     supplyStatus: {
         type: Boolean,
         required: true,
-        unique: true
+        default: false
     },
     products: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
+        ref: 'AdminProduct',
         required: true
     }],
     provider: {
