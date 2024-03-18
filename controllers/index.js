@@ -1,6 +1,5 @@
 export * as UserController from './UserController.js'
 export * as ProductController from './ProductController.js'
-export * as AdminProductController from './AdminProductController.js'
 export * as SaleController from './SaleController.js'
 export * as AdminController from './AdminController.js'
 export * as ProviderController from './ProviderController.js'

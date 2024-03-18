@@ -5,7 +5,7 @@ import cors from "cors";
 import checkAuth from "./utils/checkAuth.js";
 import { getMe, login, register } from "./controllers/UserController.js";
 
-import {UserController, ProductController, SaleController, AdminController, ProviderController, SupplyController, AdminProductController} from './controllers/index.js'
+import {UserController, ProductController, SaleController, AdminController, ProviderController, SupplyController} from './controllers/index.js'
 
 
 mongoose
@@ -36,8 +36,10 @@ app.get('/products/:id', ProductController.getOne);
 app.get('/products/most/popular', ProductController.getMostPopular);
 app.get('/products/most/new', ProductController.getNewProducts);
 app.post('/products', checkAuth, ProductController.create);
+app.post('/products/sale', ProductController.approveSale);
 app.delete('/products/:id', checkAuth, ProductController.remove);
 app.patch('/products/:id', checkAuth, ProductController.update);
+app.post('/products/report', checkAuth, ProductController.exportReport)
 
 //Sale
 app.post('/sales', checkAuth, SaleController.create);
@@ -62,12 +64,6 @@ app.get('/supplies/:id', SupplyController.getOne)
 app.post('/supplies', SupplyController.create)
 app.patch('/supplies', SupplyController.approveOne)
 
-//Товары базы данных товаров
-app.get('/admin/products', AdminProductController.getAll);
-app.get('/admin/products/:id', AdminProductController.getOne);
-app.post('/admin/products', checkAuth, AdminProductController.create);
-app.delete('/admin/products/:id', checkAuth, AdminProductController.remove);
-app.patch('/admin/products/:id', checkAuth, AdminProductController.update);
 
 app.listen(4444, (err) => {
   if (err) {

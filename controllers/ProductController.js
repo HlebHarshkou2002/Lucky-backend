@@ -1,9 +1,23 @@
+import { stringify } from "querystring";
 import ProductModel from "../models/Product.js";
 import SaleModel from "../models/Sale.js";
+import ExcelJS from "exceljs";
+import fs from "fs";
+import path from "path";
 
 export const getAll = async (req, res) => {
   try {
-    const products = await ProductModel.find().populate("user").exec();
+    const products = await ProductModel.find()
+      .populate("user")
+      .populate("provider")
+      .exec();
+
+    const productsToView = [];
+    for (let el of products) {
+      if (el.storeCount !== 0) {
+        productsToView.push(el);
+      }
+    }
 
     res.json(products);
   } catch (err) {
@@ -66,7 +80,7 @@ export const create = async (req, res) => {
       description: req.body.description,
       author: req.body.author,
       imgUrl: req.body.imgUrl,
-      genres: req.body.genres,
+      categories: req.body.categories,
       ageRestriction: req.body.ageRestriction,
       complexity: req.body.complexity,
       rating: req.body.rating,
@@ -78,7 +92,7 @@ export const create = async (req, res) => {
     res.json(product);
   } catch (err) {
     console.log(err);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Не удалось создать товар",
     });
   }
@@ -117,51 +131,105 @@ export const update = async (req, res) => {
   }
 };
 
-export const getMostPopular = async (req, res) => {
+export const approveSale = async (req, res) => {
   try {
-    const sales = await SaleModel.find().populate("user").exec();
-    const products = await ProductModel.find().populate("user").exec();
+    const salesData = req.body;
 
-    //Записать массив объектов, кот содержит информацию о повторениях обьектов
-    let tableOfSales = new Map();
-
-    for (let el of sales) {
-      let count = 0;
-
-      for (let item of sales) {
-        if (el.title === item.title) {
-          count++;
-        }
+    for (let el of salesData) {
+      const product = await ProductModel.findById(el._id);
+      if (!product) {
+        return res.status(500).json({
+          message: "Товар не найден",
+        });
       }
-      tableOfSales.set(el.title, count)
-    }
+      let newStoreCount = el.storeCount - 1;
+      let newSaleCount = el.saleCount + 1;
 
-    //Отсортировать по убыванию
-    let salesArray = [...tableOfSales];
-    let sortedArray = salesArray.sort((a, b) => {
-      return b[1] - a[1];
-    })
+      await ProductModel.findOneAndUpdate(
+        { _id: el._id },
+        { $set: { storeCount: newStoreCount } }
+      );
+      await ProductModel.findOneAndUpdate(
+        { _id: el._id },
+        { $set: { saleCount: newSaleCount } }
+      );
 
-    let arrayOfTitles = [];
+      //Алгоритм для того чтобы фильтровать по дате
+      let newSalesArray = product.sales;
+      let date = new Date();
+      let isIncludes = false;
 
-    //Взять первые 8 названий из массива
-    for(let i = 0; (i < sortedArray.length) && (i < 8); i++) {
-      arrayOfTitles.push(sortedArray[i][0])
-    }
-
-    //Достать эти названия в массив в виде объектов
-    let mostPopular = [];
-
-    for(let title of arrayOfTitles) {
-      for(let el of products) {
-        if (title === el.title) {
-          mostPopular.push(el);
+      for (let sale of newSalesArray) {
+        if (
+          sale.yearOfSale === date.getFullYear() &&
+          sale.monthOfSale === date.getMonth() &&
+          sale.dayOfSale === date.getDate()
+        ) {
+          sale.saleCount += 1;
+          isIncludes = true;
           break;
         }
+
+        console.log(newSalesArray);
+      }
+
+      await ProductModel.findOneAndUpdate(
+        { _id: el._id },
+        { $set: { sales: newSalesArray } }
+      );
+
+      if (newSalesArray.length === 0) {
+        newSalesArray.push({
+          yearOfSale: date.getFullYear(),
+          monthOfSale: date.getMonth(),
+          dayOfSale: date.getDate(),
+          saleCount: 1,
+        });
+        await ProductModel.findOneAndUpdate(
+          { _id: el._id },
+          { $set: { sales: newSalesArray } }
+        );
+      }
+
+      if (!isIncludes) {
+        newSalesArray.push({
+          yearOfSale: date.getFullYear(),
+          monthOfSale: date.getMonth(),
+          dayOfSale: date.getDate(),
+          saleCount: 1,
+        });
+        await ProductModel.findOneAndUpdate(
+          { _id: el._id },
+          { $set: { sales: newSalesArray } }
+        );
       }
     }
 
-    res.json(mostPopular);
+    res.json(salesData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось создать оплату",
+    });
+  }
+};
+
+export const getMostPopular = async (req, res) => {
+  try {
+    const products = await ProductModel.find().populate("user").exec();
+
+    const productsToView = [];
+    for (let el of products) {
+      if (el.storeCount !== 0) {
+        productsToView.push(el);
+      }
+    }
+
+    productsToView.sort(function (a, b) {
+      return b.saleCount - a.saleCount;
+    });
+
+    res.json(productsToView.slice(0, 8));
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -174,15 +242,47 @@ export const getNewProducts = async (req, res) => {
   try {
     const products = await ProductModel.find().populate("user").exec();
 
-    products.sort(function(a,b) {
-      return (b.createdAt - a.createdAt);
-    })
+    const productsToView = [];
+    for (let el of products) {
+      if (el.storeCount !== 0) {
+        productsToView.push(el);
+      }
+    }
 
-    res.json(products.slice(0, 8));
+    productsToView.sort(function (a, b) {
+      return b.createdAt - a.createdAt;
+    });
+
+    res.json(productsToView.slice(0, 8));
   } catch (err) {
     console.log(err);
     res.status(500).json({
       message: "Не удалось получить товары",
+    });
+  }
+};
+
+export const exportReport = async (req, res) => {
+  try {
+    const data = req.body.products;
+
+    fs.writeFile("reports/data.xls", JSON.stringify(data), function (error) {
+      if (error) {
+        return console.log(error);
+      }
+      console.log("Файл успешно записан");
+    });
+
+    let filepath = path.resolve("reports/data.xls");
+
+    res.json({
+      success: true,
+      filepath
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось сохранить отчёт",
     });
   }
 };

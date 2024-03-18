@@ -13,6 +13,12 @@ export const create = async (req, res) => {
       provider: req.body.providerId,
     });
 
+    const providerId = req.body.providerId
+
+    for(let el of req.body.products) {
+      await ProductModel.findOneAndUpdate({_id: el._id}, {$set: {provider: providerId}})
+    }
+
     const supply = await doc.save();
 
     res.json(supply);
@@ -26,7 +32,7 @@ export const create = async (req, res) => {
 
 export const getAll = async (req, res) => {
   try {
-    const supplies = await SupplyModel.find().populate('provider').populate('products').exec();
+    const supplies = await SupplyModel.find().populate('provider').exec();
 
     if (!supplies) {
       return res.status(404).json({
@@ -47,7 +53,7 @@ export const getAll = async (req, res) => {
 export const getOne = async (req, res) => {
   try {
     const supplyId = req.params.id;
-    const supply = await SupplyModel.findById(supplyId).populate('provider').populate('products').exec();
+    const supply = await SupplyModel.findById(supplyId).populate('provider').exec();
 
     if (!supply) {
       return res.status(500).json({
@@ -67,7 +73,7 @@ export const getOne = async (req, res) => {
 export const approveOne = async (req, res) => {
   try {
     const supplyId = req.body.id;
-    let supply = await SupplyModel.findById(supplyId).populate('provider').populate('products').exec();
+    let supply = await SupplyModel.findById(supplyId).populate('provider').exec();
 
     if (!supply) {
       return res.status(500).json({
@@ -76,23 +82,14 @@ export const approveOne = async (req, res) => {
     }
 
     for(let el of supply.products) {
-      
-      const doc = new ProductModel({
-        title: el.title,
-        price: el.price,
-        description: el.description,
-        author: el.author,
-        imgUrl: el.imgUrl,
-        genres: el.genres,
-        ageRestriction: el.ageRestriction,
-        complexity: el.complexity,
-        rating: el.rating
-      });
-  
-      const product = await doc.save();
+      const product = await ProductModel.findById(el._id);
+      let newStoreCount = product.storeCount + el.storeCount;
+      let newDeliveryPrice = el.deliveryPrice;
+      await ProductModel.findOneAndUpdate({_id: el._id}, {$set: {storeCount: newStoreCount}})
+      await ProductModel.findOneAndUpdate({_id: el._id}, {$set: {deliveryPrice: newDeliveryPrice}})
     }
 
-    supply = await SupplyModel.findOneAndUpdate({_id: supplyId}, {$set: {supplyStatus: true}}).populate('provider').populate('products').exec()
+    supply = await SupplyModel.findOneAndUpdate({_id: supplyId}, {$set: {supplyStatus: true}}).populate('provider').exec()
 
     res.json(supply);
   } catch (err) {

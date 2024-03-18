@@ -17,11 +17,11 @@ const SupplySchema = new mongoose.Schema({
         required: true,
         default: false
     },
-    products: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'AdminProduct',
-        required: true
-    }],
+    products: {
+        type: Array,
+        required: true,
+        default: []
+    },
     provider: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Provider',

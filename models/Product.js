@@ -9,6 +9,25 @@ const ProductSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    deliveryPrice: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    storeCount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    saleCount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    sales: {
+        type: Array,
+        default: []
+    },
     description: {
         type: String,
         default: ''
@@ -18,7 +37,7 @@ const ProductSchema = new mongoose.Schema({
         default: ''
     },
     imgUrl: String, 
-    genres: {
+    categories: {
         type: Array,
         default: []
     },
@@ -37,6 +56,11 @@ const ProductSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Admin'
+    },
+    provider: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Provider',
+        default: null
     }
 }, {
     timestamps: true,
