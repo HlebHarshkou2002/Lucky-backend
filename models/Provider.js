@@ -7,8 +7,7 @@ const ProviderSchema = new mongoose.Schema({
     },
     providerStatus: {
         type: Boolean,
-        required: true,
-        unique: true
+        required: true
     },
     email: {
         type: String,
