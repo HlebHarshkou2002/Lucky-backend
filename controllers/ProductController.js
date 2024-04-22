@@ -157,13 +157,15 @@ export const approveSale = async (req, res) => {
       //Алгоритм для того чтобы фильтровать по дате
       let newSalesArray = product.sales;
       let date = new Date();
+      let dateString = new Date().toLocaleDateString();
       let isIncludes = false;
 
       for (let sale of newSalesArray) {
         if (
-          sale.yearOfSale === date.getFullYear() &&
-          sale.monthOfSale === date.getMonth() &&
-          sale.dayOfSale === date.getDate()
+          // sale.yearOfSale === date.getFullYear() &&
+          // sale.monthOfSale === date.getMonth() &&
+          // sale.dayOfSale === date.getDate() &&
+          sale.dateOfSale === dateString
         ) {
           sale.saleCount += 1;
           isIncludes = true;
@@ -179,9 +181,11 @@ export const approveSale = async (req, res) => {
       );
 
       if (newSalesArray.length === 0) {
+        isIncludes = true;
         newSalesArray.push({
+          dateOfSale: dateString,
           yearOfSale: date.getFullYear(),
-          monthOfSale: date.getMonth(),
+          monthOfSale: date.getMonth()+1,
           dayOfSale: date.getDate(),
           saleCount: 1,
         });
@@ -193,8 +197,9 @@ export const approveSale = async (req, res) => {
 
       if (!isIncludes) {
         newSalesArray.push({
+          dateOfSale: dateString,
           yearOfSale: date.getFullYear(),
-          monthOfSale: date.getMonth(),
+          monthOfSale: date.getMonth()+1,
           dayOfSale: date.getDate(),
           saleCount: 1,
         });
