@@ -219,6 +219,7 @@ export const approveSale = async (req, res) => {
   }
 };
 
+
 export const getMostPopular = async (req, res) => {
   try {
     const products = await ProductModel.find().populate("user").exec();

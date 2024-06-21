@@ -28,6 +28,15 @@ const ProductSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
+    orderCount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    orders: {
+        type: Array,
+        default: []
+    },
     description: {
         type: String,
         default: ''
