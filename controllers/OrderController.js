@@ -65,6 +65,7 @@ export const getMyOrders = async (req, res) => {
 
 export const create = async (req, res) => {
   try {
+
     const doc = new OrderModel({
       user: req.body.userId,
       products: req.body.products

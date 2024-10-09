@@ -1,11 +1,15 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import http from "http"
+
 
 import checkAuth from "./utils/checkAuth.js";
 import { getMe, login, register } from "./controllers/UserController.js";
 
-import {UserController, ProductController, SaleController, AdminController, ProviderController, SupplyController, ShopInfoController, OrderController} from './controllers/index.js'
+import { UserController, ProductController, SaleController, AdminController, ProviderController, SupplyController, ShopInfoController, OrderController } from './controllers/index.js'
+
+import { WebSocketServer } from "ws";
 
 
 mongoose
@@ -20,6 +24,31 @@ mongoose
   });
 
 const app = express();
+
+//webSocket
+const server = http.createServer(app);
+const webSocketServer = new WebSocketServer({ port: 8080 })
+
+webSocketServer.on('connection', ws => {
+  ws.on('message', message => {
+    message = JSON.parse(message)
+    switch (message.event) {
+      case 'message':
+        broadcastMessage(message)
+        break;
+      case 'connection':
+        broadcastMessage(message)
+        break;
+    }
+  })
+  ws.on('error', e => ws.send(e))
+})
+
+
+function broadcastMessage(message) {
+  webSocketServer.clients.forEach(client => client.send(JSON.stringify(message)))
+}
+
 
 app.use(cors())
 app.use(express.json()); //Позволяет читать json в запросах
