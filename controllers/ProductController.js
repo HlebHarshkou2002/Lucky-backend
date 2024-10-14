@@ -12,6 +12,19 @@ export const getAll = async (req, res) => {
       .populate("provider")
       .exec();
 
+    let page = parseInt(req.query.page);
+    let limit = req.query.limit;
+
+    if(page === undefined || limit === undefined) {
+      page = 1;
+      limit = 100
+    }
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const resultProducts = products.slice(startIndex, endIndex);
+
     const productsToView = [];
     for (let el of products) {
       if (el.storeCount !== 0) {
@@ -19,7 +32,12 @@ export const getAll = async (req, res) => {
       }
     }
 
-    res.json(products);
+    const result = {
+      totalCountProducts: products.length,
+      resultProducts
+    }
+
+    res.json(result);
   } catch (err) {
     console.log(err);
     res.status(500).json({
